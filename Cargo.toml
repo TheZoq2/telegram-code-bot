@@ -1,0 +1,16 @@
+[package]
+name = "telegram-code"
+version = "0.1.0"
+authors = ["TheZoq2 <frans.skarman@gmail.com>"]
+
+[dependencies]
+futures = "0.1.0"
+tokio-core = "0.1.5"
+# telegram-bot = "0.6.1"
+telegram-bot = {path = "telegram-bot/lib"}
+
+serde_json = "1.0.15"
+serde_derive = "1.0.39"
+serde = "1.0.39"
+
+reqwest = "0.8.5"
