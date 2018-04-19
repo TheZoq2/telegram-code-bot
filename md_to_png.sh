@@ -6,5 +6,5 @@ pngname="/tmp/cody.png"
 # Convert the markdown to a pdf
 pandoc -f gfm -o "$pdfname" --template=nonumbertemplate.tex -i
 
-convert -density 100 $pdfname $pngname
+convert -density 125 $pdfname $pngname
 convert -trim -border 5x5 $pngname $pngname
