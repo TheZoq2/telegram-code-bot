@@ -11,11 +11,32 @@ extern crate serde_json;
 mod gist;
 
 use std::env;
+use std::process::{Command,Stdio};
+use std::fs::File;
+use std::io::prelude::*;
 
 use futures::Stream;
 use tokio_core::reactor::Core;
 use telegram_bot::*;
 use telegram_bot::types::requests::SendMessage;
+
+fn md_to_png(md: String) -> Vec<u8> {
+    let command = Command::new("./md_to_png.sh")
+        .stdin(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn md_to_png");
+
+
+    command.stdin
+        .expect("Child did not have stdin")
+        .write_all(md.as_bytes())
+        .expect("Writing stdin to child failed");
+
+    let mut result_png = File::open("/tmp/cody.png").expect("Failed to open created png");
+    let mut result = vec!();
+    result_png.read_to_end(&mut result).expect("Failed to read resulting file");
+    result
+}
 
 fn main() {
     let mut core = Core::new().unwrap();
@@ -24,19 +45,6 @@ fn main() {
     let api = Api::configure(token).build(core.handle()).unwrap();
 
     let client = reqwest::Client::new();
-
-    let gist_body = serde_json::to_string(
-        &gist::GistCreateRequest::new_single_file(
-            "test.txt".into(),
-            "yoloswag".into()
-        )
-    ).expect("Failed to encode gist body");
-
-    let response = client.post("https://api.github.com/gists")
-        .body(gist_body)
-        .send().expect("Failed to send request");
-
-    println!("response: {:?}", response);
 
     // Fetch new updates via long poll method
     let future = api.stream().for_each(|update| {
@@ -50,18 +58,20 @@ fn main() {
 
                 println!("entities: {:?}", entities);
 
-                let mut code_blocks = vec!();
+                let chars = data.chars().collect::<Vec<_>>();
+                let mut markdown = String::new();
                 for e in entities {
                     if e.kind == MessageEntityKind::Pre {
-                        println!("Got pre {:?}", e);
-                        code_blocks.push(
-                            format!("Found code starting at {} with length {}", e.offset, e.length)
-                        );
+                        let offset = e.offset as usize;
+                        let length = e.length as usize;
+                        markdown.push_str("```")
+                        markdown.push_str(&chars[offset..offset + length].iter().collect::<String>());
                     }
                 }
 
-                api.spawn(SendMessage::new(message.chat, format!("{:?}", code_blocks)));
-                
+                if markdown.len() > 0 {
+                    api.spawn(SendMessage::new(message.chat, markdown));
+                }
 
 
                 //// Answer message with "Hi".
