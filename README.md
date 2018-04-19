@@ -3,6 +3,8 @@
 A simple telegram bot that sends an image with syntax highlighting of any
 code-snippet that is posted in the chat.
 
+![Sample screenshot](screenshot.png)
+
 # Installation
 
 This project is built in rust, so you will need the rust compiler as well as cargo.
