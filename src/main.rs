@@ -20,22 +20,32 @@ use tokio_core::reactor::Core;
 use telegram_bot::*;
 use telegram_bot::types::requests::SendMessage;
 
-fn md_to_png(md: String) -> Vec<u8> {
-    let command = Command::new("./md_to_png.sh")
+
+fn md_to_png(md: &str) -> String {
+    let mut command = Command::new("./md_to_png.sh")
         .stdin(Stdio::piped())
         .spawn()
         .expect("Failed to spawn md_to_png");
 
 
-    command.stdin
+    command.stdin.as_mut()
         .expect("Child did not have stdin")
         .write_all(md.as_bytes())
         .expect("Writing stdin to child failed");
 
-    let mut result_png = File::open("/tmp/cody.png").expect("Failed to open created png");
-    let mut result = vec!();
-    result_png.read_to_end(&mut result).expect("Failed to read resulting file");
-    result
+    // Wait for command to finnish running
+    command.wait().expect("Command failed to run");
+
+    String::from("/tmp/cody.png")
+}
+
+fn send_file(filename: &str, chat_id: i64) {
+    Command::new("./sendPhoto.sh")
+        .arg(&format!("{}", chat_id))
+        .arg(filename)
+        .output()
+        .expect("Failed to run upload script");
+
 }
 
 fn main() {
@@ -56,7 +66,7 @@ fn main() {
                 // Print received text message to stdout.
                 println!("<{}>: {}", &message.from.first_name, data);
 
-                println!("entities: {:?}", entities);
+                println!("{:?}", message.chat);
 
                 let chars = data.chars().collect::<Vec<_>>();
                 let mut markdown = String::new();
@@ -64,13 +74,16 @@ fn main() {
                     if e.kind == MessageEntityKind::Pre {
                         let offset = e.offset as usize;
                         let length = e.length as usize;
-                        markdown.push_str("```")
+                        markdown.push_str("```");
                         markdown.push_str(&chars[offset..offset + length].iter().collect::<String>());
+                        markdown.push_str("\n```\n");
                     }
                 }
 
                 if markdown.len() > 0 {
-                    api.spawn(SendMessage::new(message.chat, markdown));
+                    let filename = md_to_png(&markdown);
+                    send_file(&filename, message.chat.id().0);
+                    //api.spawn(SendMessage::new(message.chat, markdown));
                 }
 
 
