@@ -13,7 +13,16 @@ Install imagemagick and pandoc for rendering markdown.
 
 Set the enviroment variable `$TELEGRAM_BOT_TOKEN` to the bot token given to you by "bot father"
 
-Use `cargo run` to start the bot
+Initialise the submodule to get a modified telegram-api crate
+```
+git submodule init
+git submodule update
+```
+
+Start the bot
+```
+cargo run
+```
 
 # Usage
 
