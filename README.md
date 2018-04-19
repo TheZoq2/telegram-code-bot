@@ -31,8 +31,11 @@ Add the bot as an admin to your group.
 Any code snippets in a message will be rendered to an image and sent to the chat.
 
 Since it is rendered as markdown, you have to add the language after the first 3 backticks
-on the snippet. For example
-    \`\`\`python
+on the snippet. For example:
+
+
+    Look at this function I wrote!
+    ```python
     def test():
         print("yolo")
-    \`\`\`
+    ```
