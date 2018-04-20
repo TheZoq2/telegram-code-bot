@@ -74,9 +74,19 @@ fn main() {
                     if e.kind == MessageEntityKind::Pre {
                         let offset = e.offset as usize;
                         let length = e.length as usize;
-                        markdown.push_str("```");
-                        markdown.push_str(&chars[offset..offset + length].iter().collect::<String>());
-                        markdown.push_str("\n```\n");
+                        let substring = chars.get(offset..offset + length);
+                        if let Some(substring) = substring {
+                            markdown.push_str("```");
+                            markdown.push_str(&substring.iter().collect::<String>());
+                            markdown.push_str("\n```\n");
+                        }
+                        else {
+                            println!(
+                                "Substring ot of range offset: {} length: {}",
+                                offset,
+                                length
+                            );
+                        }
                     }
                 }
 
